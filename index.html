@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="소방시설 단속 후 개선 여부를 관리하는 웹 시스템">
+<meta name="theme-color" content="#b91c1c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>소방시설 개선 관리대장</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--fire-900:#7f1d1d;--fire-800:#991b1b;--fire-700:#b91c1c;--fire-600:#dc2626;--fire-500:#ef4444;--fire-400:#f87171;--fire-300:#fca5a5;--fire-200:#fecaca;--fire-100:#fee2e2;--fire-50:#fef2f2;--slate-900:#0f172a;--slate-800:#1e293b;--slate-700:#334155;--slate-600:#475569;--slate-500:#64748b;--slate-400:#94a3b8;--slate-300:#cbd5e1;--slate-200:#e2e8f0;--slate-100:#f1f5f9;--slate-50:#f8fafc;--amber-500:#f59e0b;--amber-100:#fef3c7;--emerald-600:#059669;--emerald-500:#10b981;--emerald-100:#d1fae5;--blue-600:#2563eb;--blue-500:#3b82f6;--blue-100:#dbeafe;--radius:12px;--radius-sm:8px;--radius-lg:16px;--shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);--shadow-lg:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -2px rgba(0,0,0,.05);--shadow-xl:0 20px 25px -5px rgba(0,0,0,.1),0 10px 10px -5px rgba(0,0,0,.04)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--slate-100);color:var(--slate-800);min-height:100vh;-webkit-font-smoothing:antialiased}
+.header{background:linear-gradient(135deg,var(--fire-800),var(--fire-700) 50%,var(--fire-600));color:#fff;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(185,28,28,.3)}
+.header-inner{max-width:1400px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo-area{display:flex;align-items:center;gap:14px}
+.logo-icon{width:40px;height:40px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1)}
+.logo-text{font-weight:800;font-size:18px;letter-spacing:-.5px}
+.logo-sub{font-size:11px;opacity:.7;font-weight:400;letter-spacing:.5px;margin-top:1px}
+.nav-tabs{display:flex;gap:4px}
+.nav-tab{padding:8px 20px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;border:none;background:0 0;color:rgba(255,255,255,.7);transition:all .2s;display:flex;align-items:center;gap:8px;font-family:inherit;white-space:nowrap}
+.nav-tab:hover{background:rgba(255,255,255,.1);color:#fff}
+.nav-tab.active{background:rgba(255,255,255,.2);color:#fff;font-weight:600;backdrop-filter:blur(10px)}
+.nav-tab-icon{font-size:16px}
+.main{max-width:1400px;margin:0 auto;padding:28px 24px}
+.page{display:none;animation:fadeIn .3s ease}.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:#fff;border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);border:1px solid var(--slate-200);transition:all .2s;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.stat-card.total::before{background:var(--blue-500)}.stat-card.pending::before{background:var(--amber-500)}.stat-card.complete::before{background:var(--emerald-500)}.stat-card.rate::before{background:var(--fire-500)}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.stat-label{font-size:13px;color:var(--slate-500);font-weight:500;margin-bottom:8px}
+.stat-value{font-family:'JetBrains Mono',monospace;font-size:32px;font-weight:700;color:var(--slate-900);letter-spacing:-1px}
+.stat-value .unit{font-size:16px;font-weight:500;color:var(--slate-400);margin-left:2px}
+.toolbar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.toolbar-btn{padding:8px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--slate-300);background:#fff;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px;color:var(--slate-700)}
+.toolbar-btn:hover{background:var(--slate-50);border-color:var(--slate-400)}
+.toolbar-btn.danger{color:var(--fire-600);border-color:var(--fire-200)}.toolbar-btn.danger:hover{background:var(--fire-50);border-color:var(--fire-400)}
+.table-container{background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow);border:1px solid var(--slate-200);overflow:hidden}
+.table-header{padding:20px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--slate-200);background:var(--slate-50);flex-wrap:wrap;gap:12px}
+.table-title{font-size:16px;font-weight:700;color:var(--slate-900);display:flex;align-items:center;gap:10px}
+.table-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.search-box{padding:8px 14px 8px 36px;border:1px solid var(--slate-300);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;width:240px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242.656a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E") 12px center no-repeat;transition:all .2s;outline:0}
+.search-box:focus{border-color:var(--fire-500);box-shadow:0 0 0 3px var(--fire-100)}
+.filter-select{padding:8px 14px;border:1px solid var(--slate-300);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:#fff;cursor:pointer;outline:0}
+.table-scroll{overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--slate-300) transparent}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--slate-50);padding:12px 16px;text-align:left;font-weight:600;color:var(--slate-600);font-size:12px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--slate-200);white-space:nowrap}
+td{padding:14px 16px;border-bottom:1px solid var(--slate-100);vertical-align:middle}
+tr:hover td{background:var(--slate-50)}tr:last-child td{border-bottom:none}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap}
+.badge-pending{background:var(--amber-100);color:#92400e}.badge-complete{background:var(--emerald-100);color:#065f46}
+.badge-dot{width:6px;height:6px;border-radius:50%}.badge-pending .badge-dot{background:var(--amber-500)}.badge-complete .badge-dot{background:var(--emerald-500)}
+.code-text{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--fire-700);background:var(--fire-50);padding:2px 8px;border-radius:4px}
+.link-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:var(--blue-100);color:var(--blue-600);border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:inherit;transition:all .15s}
+.link-btn:hover{background:#bfdbfe}
+.photo-thumb{width:40px;height:40px;border-radius:6px;object-fit:cover;border:1px solid var(--slate-200);cursor:pointer;transition:all .2s}
+.photo-thumb:hover{transform:scale(1.1);box-shadow:var(--shadow-lg)}
+.text-muted{color:var(--slate-400);font-size:12px}.text-sm{font-size:12px;color:var(--slate-600)}
+.delete-btn{padding:4px 8px;border:1px solid var(--slate-200);border-radius:6px;background:#fff;cursor:pointer;color:var(--slate-400);font-size:14px;transition:all .15s}
+.delete-btn:hover{border-color:var(--fire-300);color:var(--fire-500);background:var(--fire-50)}
+.form-container{max-width:680px;margin:0 auto}
+.form-card{background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow);border:1px solid var(--slate-200);overflow:hidden}
+.form-card-header{padding:28px 32px 20px;border-bottom:1px solid var(--slate-100)}
+.form-card-header h2{font-size:22px;font-weight:800;color:var(--slate-900);margin-bottom:6px}
+.form-card-header p{font-size:14px;color:var(--slate-500)}
+.form-body{padding:28px 32px 32px}
+.form-group{margin-bottom:24px}
+.form-label{display:block;font-size:14px;font-weight:600;color:var(--slate-700);margin-bottom:8px}
+.form-label .required{color:var(--fire-500);margin-left:2px}
+.form-input,.form-textarea,.form-select{width:100%;padding:11px 16px;border:1px solid var(--slate-300);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;transition:all .2s;background:#fff;outline:0}
+.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--fire-500);box-shadow:0 0 0 3px var(--fire-100)}
+.form-textarea{resize:vertical;min-height:100px}
+.form-input::placeholder,.form-textarea::placeholder{color:var(--slate-400)}
+.form-hint{font-size:12px;color:var(--slate-400);margin-top:6px}
+.file-upload{border:2px dashed var(--slate-300);border-radius:var(--radius);padding:32px;text-align:center;cursor:pointer;transition:all .2s;background:var(--slate-50)}
+.file-upload:hover{border-color:var(--fire-400);background:var(--fire-50)}
+.file-upload-icon{font-size:36px;margin-bottom:8px}.file-upload-text{font-size:14px;color:var(--slate-600);font-weight:500}.file-upload-hint{font-size:12px;color:var(--slate-400);margin-top:4px}
+.file-preview{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.file-preview-item{position:relative;width:80px;height:80px;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--slate-200)}
+.file-preview-item img{width:100%;height:100%;object-fit:cover}
+.file-preview-remove{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+.btn{padding:12px 28px;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:linear-gradient(135deg,var(--fire-600),var(--fire-700));color:#fff;box-shadow:0 2px 8px rgba(220,38,38,.3)}
+.btn-primary:hover{background:linear-gradient(135deg,var(--fire-500),var(--fire-600));box-shadow:0 4px 12px rgba(220,38,38,.4);transform:translateY(-1px)}
+.btn-block{width:100%;justify-content:center}
+.report-info-card{background:var(--slate-50);border:1px solid var(--slate-200);border-radius:var(--radius);padding:20px;margin-bottom:24px}
+.report-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.report-info-item{display:flex;flex-direction:column;gap:2px}
+.report-info-label{font-size:11px;font-weight:600;color:var(--slate-400);text-transform:uppercase;letter-spacing:.5px}
+.report-info-value{font-size:14px;font-weight:500;color:var(--slate-800)}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,.5);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.active{display:flex}
+.modal{background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow-xl);max-width:540px;width:90%;max-height:90vh;overflow-y:auto;animation:modalIn .25s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-header{padding:24px 28px 16px;border-bottom:1px solid var(--slate-100);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:18px;font-weight:700}
+.modal-close{width:32px;height:32px;border-radius:8px;border:none;background:var(--slate-100);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--slate-500);transition:all .15s}
+.modal-close:hover{background:var(--slate-200)}
+.modal-body{padding:24px 28px 28px}
+.toast-container{position:fixed;top:80px;right:24px;z-index:300;display:flex;flex-direction:column;gap:10px}
+.toast{padding:14px 20px;background:var(--slate-900);color:#fff;border-radius:var(--radius);box-shadow:var(--shadow-xl);font-size:14px;font-weight:500;display:flex;align-items:center;gap:10px;animation:toastIn .3s ease,toastOut .3s ease 2.7s forwards;max-width:360px}
+.toast.success{background:var(--emerald-600)}.toast.error{background:var(--fire-600)}
+@keyframes toastIn{from{opacity:0;transform:translateX(100px)}to{opacity:1;transform:translateX(0)}}
+@keyframes toastOut{from{opacity:1}to{opacity:0;transform:translateY(-10px)}}
+.empty-state{padding:60px 20px;text-align:center}
+.empty-icon{font-size:48px;margin-bottom:16px}.empty-title{font-size:16px;font-weight:600;color:var(--slate-700);margin-bottom:6px}.empty-desc{font-size:14px;color:var(--slate-400)}
+.detail-grid{display:grid;gap:4px}
+.detail-row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--slate-100)}.detail-row:last-child{border-bottom:none}
+.detail-label{font-size:12px;font-weight:600;color:var(--slate-400);min-width:80px;text-transform:uppercase;letter-spacing:.3px;padding-top:2px}
+.detail-value{font-size:14px;color:var(--slate-800);flex:1;word-break:break-all}
+.detail-photos{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.detail-photos img{width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--slate-200)}
+@media(max-width:768px){
+  .header-inner{height:56px}.logo-text{font-size:15px}.logo-sub{display:none}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px}.stat-value{font-size:24px}
+  .nav-tabs{gap:2px}.nav-tab{padding:6px 12px;font-size:12px}
+  .nav-tab span:not(.nav-tab-icon){display:none}.nav-tab-icon{font-size:18px}
+  .main{padding:16px 12px}.form-body{padding:20px 18px 24px}.form-card-header{padding:20px 18px 16px}
+  .table-header{flex-direction:column;align-items:stretch}.search-box{width:100%}
+  .report-info-grid{grid-template-columns:1fr}.toolbar{justify-content:center}
+}
+@media(max-width:480px){.stats-grid{grid-template-columns:1fr 1fr;gap:8px}.stat-card{padding:16px}.stat-value{font-size:22px}}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:0 0}::-webkit-scrollbar-thumb{background:var(--slate-300);border-radius:3px}
+</style>
+</head>
+<body>
+<header class="header"><div class="header-inner">
+  <div class="logo-area"><div class="logo-icon">🔥</div><div><div class="logo-text">소방시설 개선 관리대장</div><div class="logo-sub">Fire Safety Improvement Management</div></div></div>
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-page="dashboard"><span class="nav-tab-icon">📋</span><span>관리대장</span></button>
+    <button class="nav-tab" data-page="register"><span class="nav-tab-icon">📝</span><span>단속등록</span></button>
+    <button class="nav-tab" data-page="report"><span class="nav-tab-icon">✅</span><span>개선보고</span></button>
+  </nav>
+</div></header>
+
+<div class="toast-container" id="toastContainer"></div>
+<div class="modal-overlay" id="modalOverlay"><div class="modal">
+  <div class="modal-header"><div class="modal-title" id="modalTitle">상세 정보</div><button class="modal-close" onclick="closeModal()">✕</button></div>
+  <div class="modal-body" id="modalBody"></div>
+</div></div>
+
+<main class="main">
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="stats-grid">
+      <div class="stat-card total"><div class="stat-label">전체 단속 건수</div><div class="stat-value" id="statTotal">0<span class="unit">건</span></div></div>
+      <div class="stat-card pending"><div class="stat-label">미제출 (개선 필요)</div><div class="stat-value" id="statPending">0<span class="unit">건</span></div></div>
+      <div class="stat-card complete"><div class="stat-label">개선 완료</div><div class="stat-value" id="statComplete">0<span class="unit">건</span></div></div>
+      <div class="stat-card rate"><div class="stat-label">개선율</div><div class="stat-value" id="statRate">0<span class="unit">%</span></div></div>
+    </div>
+    <div class="toolbar">
+      <button class="toolbar-btn" onclick="exportData()">📥 데이터 내보내기</button>
+      <button class="toolbar-btn" onclick="document.getElementById('importFile').click()">📤 데이터 가져오기</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
+      <button class="toolbar-btn danger" onclick="resetAllData()">🗑 전체 초기화</button>
+    </div>
+    <div class="table-container">
+      <div class="table-header">
+        <div class="table-title"><span class="table-title-icon">📊</span>단속 현황 관리대장</div>
+        <div class="table-actions">
+          <input type="text" class="search-box" id="searchInput" placeholder="장소, 관리번호 검색...">
+          <select class="filter-select" id="filterStatus"><option value="all">전체 상태</option><option value="미제출">미제출</option><option value="완료">완료</option></select>
+        </div>
+      </div>
+      <div class="table-scroll"><table><thead><tr>
+        <th>관리번호</th><th>제출상태</th><th>등록일</th><th>단속장소</th><th>주소</th><th>개선항목</th><th>단속사진</th><th>제출일</th><th>담당자</th><th>개선사진</th><th>공유링크</th><th></th>
+      </tr></thead><tbody id="tableBody"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- REGISTER -->
+  <div class="page" id="page-register"><div class="form-container"><div class="form-card">
+    <div class="form-card-header"><h2>🔍 단속등록</h2><p>현장 단속 내용을 입력하세요. 제출 후 관리대장에 자동 등록됩니다.</p></div>
+    <div class="form-body"><form id="registerForm">
+      <div class="form-group"><label class="form-label">단속장소 <span class="required">*</span></label><input type="text" class="form-input" id="regPlace" placeholder="예: ○○빌딩 1층" required></div>
+      <div class="form-group"><label class="form-label">주소 <span class="required">*</span></label><input type="text" class="form-input" id="regAddress" placeholder="예: 서울시 강남구 역삼동 123-4" required></div>
+      <div class="form-group"><label class="form-label">개선항목 <span class="required">*</span></label><textarea class="form-textarea" id="regItems" placeholder="예: 소화기 미비치, 피난통로 장애물 적치" required></textarea><div class="form-hint">단속 내용을 상세히 기재해 주세요.</div></div>
+      <div class="form-group"><label class="form-label">단속사진</label>
+        <div class="file-upload" onclick="document.getElementById('regPhotoInput').click()"><div class="file-upload-icon">📷</div><div class="file-upload-text">클릭하여 사진을 첨부하세요</div><div class="file-upload-hint">JPG, PNG (최대 5MB)</div></div>
+        <input type="file" id="regPhotoInput" accept="image/*" multiple style="display:none" onchange="handlePhoto('reg',this)">
+        <div class="file-preview" id="regPhotoPreview"></div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">📤 단속 등록하기</button>
+    </form></div>
+  </div></div></div>
+
+  <!-- REPORT -->
+  <div class="page" id="page-report"><div class="form-container"><div class="form-card">
+    <div class="form-card-header"><h2>✅ 개선보고</h2><p>개선 조치 완료 후 보고 내용을 제출하세요.</p></div>
+    <div class="form-body"><form id="reportForm">
+      <div class="form-group"><label class="form-label">관리번호 <span class="required">*</span></label><select class="form-select" id="rptCode" required><option value="">관리번호를 선택하세요</option></select></div>
+      <div class="report-info-card" id="rptInfoCard" style="display:none"><div class="report-info-grid">
+        <div class="report-info-item"><span class="report-info-label">단속장소</span><span class="report-info-value" id="rptInfoPlace">-</span></div>
+        <div class="report-info-item"><span class="report-info-label">주소</span><span class="report-info-value" id="rptInfoAddress">-</span></div>
+        <div class="report-info-item"><span class="report-info-label">개선항목</span><span class="report-info-value" id="rptInfoItems">-</span></div>
+        <div class="report-info-item"><span class="report-info-label">등록일</span><span class="report-info-value" id="rptInfoDate">-</span></div>
+      </div></div>
+      <div class="form-group"><label class="form-label">담당자 이름 <span class="required">*</span></label><input type="text" class="form-input" id="rptName" placeholder="예: 홍길동" required></div>
+      <div class="form-group"><label class="form-label">담당자 이메일</label><input type="email" class="form-input" id="rptEmail" placeholder="예: hong@example.com"></div>
+      <div class="form-group"><label class="form-label">개선사진 <span class="required">*</span></label>
+        <div class="file-upload" onclick="document.getElementById('rptPhotoInput').click()"><div class="file-upload-icon">📸</div><div class="file-upload-text">개선 후 사진을 첨부하세요</div><div class="file-upload-hint">JPG, PNG (최대 5MB)</div></div>
+        <input type="file" id="rptPhotoInput" accept="image/*" multiple style="display:none" onchange="handlePhoto('rpt',this)">
+        <div class="file-preview" id="rptPhotoPreview"></div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">📤 개선보고 제출하기</button>
+    </form></div>
+  </div></div></div>
+</main>
+
+<script>
+const SK='fireSafety_v3';
+const load=()=>{try{return JSON.parse(localStorage.getItem(SK))||[]}catch{return[]}};
+const save=d=>localStorage.setItem(SK,JSON.stringify(d));
+const genCode=data=>{let m=0;data.forEach(d=>{const n=parseInt(d.code.replace('F-',''));if(n>m)m=n});return'F-'+String(m+1).padStart(4,'0')};
+const P=n=>String(n).padStart(2,'0');
+const fmt=iso=>{if(!iso)return'-';const d=new Date(iso);return`${d.getFullYear()}.${P(d.getMonth()+1)}.${P(d.getDate())} ${P(d.getHours())}:${P(d.getMinutes())}`};
+const esc=s=>{if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML};
+
+// NAV
+document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');document.getElementById('page-'+t.dataset.page).classList.add('active');
+  if(t.dataset.page==='dashboard')render();if(t.dataset.page==='report')populateSel();
+}));
+function switchTo(p){document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.querySelector(`[data-page="${p}"]`).classList.add('active');document.getElementById('page-'+p).classList.add('active');if(p==='dashboard')render();if(p==='report')populateSel()}
+
+// TOAST
+function toast(msg,type='success'){const c=document.getElementById('toastContainer'),t=document.createElement('div');t.className='toast '+type;t.textContent=(type==='success'?'✅ ':'❌ ')+msg;c.appendChild(t);setTimeout(()=>t.remove(),3000)}
+
+// MODAL
+function openModal(title,html){document.getElementById('modalTitle').textContent=title;document.getElementById('modalBody').innerHTML=html;document.getElementById('modalOverlay').classList.add('active')}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('active')}
+document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()});
+
+// PHOTO HANDLER
+const photos={reg:[],rpt:[]};
+function handlePhoto(type,input){
+  Array.from(input.files).forEach(f=>{
+    if(f.size>5*1024*1024){toast('5MB 이하 파일만 가능합니다','error');return}
+    const r=new FileReader();r.onload=e=>{photos[type].push(e.target.result);renderPreview(type)};r.readAsDataURL(f);
+  });input.value='';
+}
+function removePhoto(type,i){photos[type].splice(i,1);renderPreview(type)}
+function renderPreview(type){
+  document.getElementById(type+'PhotoPreview').innerHTML=photos[type].map((s,i)=>`<div class="file-preview-item"><img src="${s}"><button class="file-preview-remove" onclick="event.stopPropagation();removePhoto('${type}',${i})">✕</button></div>`).join('');
+}
+
+// REGISTER
+document.getElementById('registerForm').addEventListener('submit',e=>{
+  e.preventDefault();const data=load();
+  const entry={code:genCode(data),status:'미제출',regDate:new Date().toISOString(),place:document.getElementById('regPlace').value.trim(),address:document.getElementById('regAddress').value.trim(),items:document.getElementById('regItems').value.trim(),regPhotos:[...photos.reg],submitDate:null,reporter:null,reporterEmail:null,improvePhotos:[]};
+  data.push(entry);save(data);toast(`${entry.code} 단속 등록 완료!`);
+  document.getElementById('registerForm').reset();photos.reg=[];renderPreview('reg');switchTo('dashboard');
+});
+
+// REPORT
+function populateSel(){
+  const data=load(),sel=document.getElementById('rptCode');
+  sel.innerHTML='<option value="">관리번호를 선택하세요</option>';
+  data.filter(d=>d.status==='미제출').forEach(d=>sel.innerHTML+=`<option value="${d.code}">${d.code} — ${esc(d.place)}</option>`);
+}
+document.getElementById('rptCode').addEventListener('change',function(){
+  const entry=load().find(d=>d.code===this.value),card=document.getElementById('rptInfoCard');
+  if(entry){card.style.display='block';document.getElementById('rptInfoPlace').textContent=entry.place;document.getElementById('rptInfoAddress').textContent=entry.address;document.getElementById('rptInfoItems').textContent=entry.items;document.getElementById('rptInfoDate').textContent=fmt(entry.regDate)}else card.style.display='none';
+});
+document.getElementById('reportForm').addEventListener('submit',e=>{
+  e.preventDefault();const code=document.getElementById('rptCode').value;
+  if(!code){toast('관리번호를 선택하세요','error');return}
+  if(!photos.rpt.length){toast('개선사진을 첨부하세요','error');return}
+  const data=load(),idx=data.findIndex(d=>d.code===code);
+  if(idx===-1){toast('관리번호를 찾을 수 없습니다','error');return}
+  data[idx].status='완료';data[idx].submitDate=new Date().toISOString();
+  data[idx].reporter=document.getElementById('rptName').value.trim();
+  data[idx].reporterEmail=document.getElementById('rptEmail').value.trim();
+  data[idx].improvePhotos=[...photos.rpt];save(data);
+  toast(`${code} 개선보고 제출 완료!`);document.getElementById('reportForm').reset();
+  document.getElementById('rptInfoCard').style.display='none';photos.rpt=[];renderPreview('rpt');switchTo('dashboard');
+});
+
+// DASHBOARD
+function render(){
+  const data=load(),search=document.getElementById('searchInput').value.toLowerCase(),filter=document.getElementById('filterStatus').value;
+  const total=data.length,complete=data.filter(d=>d.status==='완료').length,pending=total-complete,rate=total?Math.round(complete/total*100):0;
+  document.getElementById('statTotal').innerHTML=`${total}<span class="unit">건</span>`;
+  document.getElementById('statPending').innerHTML=`${pending}<span class="unit">건</span>`;
+  document.getElementById('statComplete').innerHTML=`${complete}<span class="unit">건</span>`;
+  document.getElementById('statRate').innerHTML=`${rate}<span class="unit">%</span>`;
+  let f=data;if(filter!=='all')f=f.filter(d=>d.status===filter);
+  if(search)f=f.filter(d=>d.code.toLowerCase().includes(search)||d.place.toLowerCase().includes(search)||d.address.toLowerCase().includes(search));
+  const tb=document.getElementById('tableBody');
+  if(!f.length){tb.innerHTML='<tr><td colspan="12"><div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">등록된 단속 건이 없습니다</div><div class="empty-desc">단속등록 탭에서 새로운 단속 건을 등록하세요.</div></div></td></tr>';return}
+  tb.innerHTML=f.map(d=>{
+    const badge=d.status==='완료'?'<span class="badge badge-complete"><span class="badge-dot"></span>완료</span>':'<span class="badge badge-pending"><span class="badge-dot"></span>미제출</span>';
+    const rP=d.regPhotos&&d.regPhotos.length?`<img src="${d.regPhotos[0]}" class="photo-thumb" onclick="event.stopPropagation();viewDetail('${d.code}')">`:'<span class="text-muted">-</span>';
+    const iP=d.improvePhotos&&d.improvePhotos.length?`<img src="${d.improvePhotos[0]}" class="photo-thumb" onclick="event.stopPropagation();viewDetail('${d.code}')">`:'<span class="text-muted">-</span>';
+    return`<tr onclick="viewDetail('${d.code}')" style="cursor:pointer"><td><span class="code-text">${d.code}</span></td><td>${badge}</td><td><span class="text-sm">${fmt(d.regDate)}</span></td><td><strong>${esc(d.place)}</strong></td><td><span class="text-sm">${esc(d.address)}</span></td><td><span class="text-sm">${esc(d.items.substring(0,30))}${d.items.length>30?'…':''}</span></td><td onclick="event.stopPropagation()">${rP}</td><td><span class="text-sm">${fmt(d.submitDate)}</span></td><td>${d.reporter?'<span class="text-sm">'+esc(d.reporter)+'</span>':'<span class="text-muted">-</span>'}</td><td onclick="event.stopPropagation()">${iP}</td><td onclick="event.stopPropagation()"><button class="link-btn" onclick="copyLink('${d.code}')">🔗 복사</button></td><td onclick="event.stopPropagation()"><button class="delete-btn" onclick="deleteEntry('${d.code}')">🗑</button></td></tr>`;
+  }).join('');
+}
+
+function viewDetail(code){
+  const d=load().find(x=>x.code===code);if(!d)return;
+  const rP=d.regPhotos&&d.regPhotos.length?`<div class="detail-photos">${d.regPhotos.map(s=>`<img src="${s}">`).join('')}</div>`:'<span class="text-muted">없음</span>';
+  const iP=d.improvePhotos&&d.improvePhotos.length?`<div class="detail-photos">${d.improvePhotos.map(s=>`<img src="${s}">`).join('')}</div>`:'<span class="text-muted">없음</span>';
+  const badge=d.status==='완료'?'<span class="badge badge-complete"><span class="badge-dot"></span>완료</span>':'<span class="badge badge-pending"><span class="badge-dot"></span>미제출</span>';
+  openModal(`${d.code} 상세 정보`,`<div class="detail-grid">
+    <div class="detail-row"><div class="detail-label">관리번호</div><div class="detail-value"><span class="code-text">${d.code}</span></div></div>
+    <div class="detail-row"><div class="detail-label">상태</div><div class="detail-value">${badge}</div></div>
+    <div class="detail-row"><div class="detail-label">단속장소</div><div class="detail-value">${esc(d.place)}</div></div>
+    <div class="detail-row"><div class="detail-label">주소</div><div class="detail-value">${esc(d.address)}</div></div>
+    <div class="detail-row"><div class="detail-label">개선항목</div><div class="detail-value">${esc(d.items)}</div></div>
+    <div class="detail-row"><div class="detail-label">등록일</div><div class="detail-value">${fmt(d.regDate)}</div></div>
+    <div class="detail-row"><div class="detail-label">단속사진</div><div class="detail-value">${rP}</div></div>
+    ${d.reporter?`<div class="detail-row"><div class="detail-label">담당자</div><div class="detail-value">${esc(d.reporter)}${d.reporterEmail?' ('+esc(d.reporterEmail)+')':''}</div></div>`:''}
+    ${d.submitDate?`<div class="detail-row"><div class="detail-label">제출일</div><div class="detail-value">${fmt(d.submitDate)}</div></div>`:''}
+    <div class="detail-row"><div class="detail-label">개선사진</div><div class="detail-value">${iP}</div></div>
+  </div>`);
+}
+
+function copyLink(code){const link=location.origin+location.pathname+'?report='+code;navigator.clipboard.writeText(link).then(()=>toast('개선보고 링크가 복사되었습니다!')).catch(()=>prompt('링크를 복사하세요:',link))}
+function deleteEntry(code){if(!confirm(`${code} 항목을 삭제하시겠습니까?`))return;save(load().filter(d=>d.code!==code));toast(`${code} 삭제 완료`);render()}
+
+// DATA IMPORT/EXPORT
+function exportData(){
+  const data=load();if(!data.length){toast('내보낼 데이터가 없습니다','error');return}
+  const withPhotos=confirm('사진 데이터를 포함하시겠습니까?\n\n확인 = 사진 포함\n취소 = 텍스트만');
+  const exp=withPhotos?data:data.map(d=>({...d,regPhotos:[],improvePhotos:[]}));
+  const blob=new Blob([JSON.stringify(exp,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=`소방시설_관리대장_${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);toast('데이터를 내보냈습니다');
+}
+function importData(input){
+  const file=input.files[0];if(!file)return;
+  const r=new FileReader();r.onload=e=>{try{
+    const imp=JSON.parse(e.target.result);if(!Array.isArray(imp))throw 0;
+    if(!confirm(`${imp.length}건의 데이터를 가져오시겠습니까?\n기존 데이터와 병합됩니다.`))return;
+    const cur=load(),codes=new Set(cur.map(d=>d.code));let n=0;imp.forEach(d=>{if(!codes.has(d.code)){cur.push(d);n++}});
+    save(cur);toast(`${n}건 가져오기 완료`);render();
+  }catch{toast('잘못된 파일 형식입니다','error')}};r.readAsText(file);input.value='';
+}
+function resetAllData(){if(!confirm('⚠️ 모든 데이터를 삭제하시겠습니까?'))return;if(!confirm('정말로 전체 초기화하시겠습니까?'))return;localStorage.removeItem(SK);toast('전체 데이터가 삭제되었습니다');render()}
+
+document.getElementById('searchInput').addEventListener('input',render);
+document.getElementById('filterStatus').addEventListener('change',render);
+
+// URL PARAMS
+function checkUrl(){
+  const code=new URLSearchParams(location.search).get('report');if(!code)return;
+  switchTo('report');const entry=load().find(d=>d.code===code);
+  if(entry){const sel=document.getElementById('rptCode');if(!sel.querySelector(`option[value="${code}"]`))sel.innerHTML+=`<option value="${code}">${code} — ${esc(entry.place)}</option>`;sel.value=code;sel.dispatchEvent(new Event('change'))}
+}
+
+// DEMO
+function initDemo(){if(load().length)return;save([
+  {code:'F-0001',status:'완료',regDate:'2025-03-10T09:30:00',place:'강남 메트로빌딩 B1',address:'서울시 강남구 역삼로 123',items:'소화기 유효기간 만료, 피난구 유도등 미점등',regPhotos:[],submitDate:'2025-03-12T14:20:00',reporter:'김철수',reporterEmail:'kim@example.com',improvePhotos:[]},
+  {code:'F-0002',status:'미제출',regDate:'2025-03-11T11:00:00',place:'서초 프라자 3층',address:'서울시 서초구 서초대로 456',items:'스프링클러 헤드 3개 파손, 방화문 고정장치 미설치',regPhotos:[],submitDate:null,reporter:null,reporterEmail:null,improvePhotos:[]},
+  {code:'F-0003',status:'미제출',regDate:'2025-03-13T15:45:00',place:'종로 상가건물 2층',address:'서울시 종로구 종로 78-9',items:'피난통로 장애물 적치, 비상구 잠금',regPhotos:[],submitDate:null,reporter:null,reporterEmail:null,improvePhotos:[]},
+  {code:'F-0004',status:'완료',regDate:'2025-03-08T10:15:00',place:'용산 오피스텔 1층',address:'서울시 용산구 한강대로 234',items:'옥내소화전 호스 파손',regPhotos:[],submitDate:'2025-03-09T16:30:00',reporter:'박영희',reporterEmail:'park@example.com',improvePhotos:[]},
+  {code:'F-0005',status:'미제출',regDate:'2025-03-14T13:20:00',place:'마포 주상복합 B2',address:'서울시 마포구 월드컵로 567',items:'자동화재탐지설비 감지기 미작동 5개소',regPhotos:[],submitDate:null,reporter:null,reporterEmail:null,improvePhotos:[]}
+])}
+
+initDemo();render();checkUrl();
+</script>
+</body>
+</html>
